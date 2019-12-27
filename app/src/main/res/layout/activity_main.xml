@@ -11,5 +11,10 @@
         android:layout_height="370dp"
         android:text="Hello World!"
         />
+   <TextView
+       android:layout_width="match_parent"
+       android:layout_height="match_parent"
+       android:text="你好"
 
+       />
 </LinearLayout>
