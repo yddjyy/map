@@ -1,14 +1,40 @@
 *.iml
+<<<<<<< HEAD
 .gradle
 /local.properties
 /.idea/caches
 /.idea/libraries
+=======
+*.gradle
+/local.properties
+*.idea
+/*.idea
+/.idea/caches
+/.ideabraries
+>>>>>>> 79b85b4f28273ed9f4eda60c955387c4285e9428
 /.idea/modules.xml
 /.idea/workspace.xml
 /.idea/navEditor.xml
 /.idea/assetWizardSettings.xml
 .DS_Store
+<<<<<<< HEAD
 /build
 /captures
 .externalNativeBuild
 .cxx
+=======
+ild
+/captures
+.externalNativeBuild
+.cxx
+/gradlew
+*.bat
+local.properties
+gradle.properties
+*/wrapper
+/gradle
+*/gradle-wrapper.jar
+*/gradle-wrapper.properties
+*.pro
+
+>>>>>>> 79b85b4f28273ed9f4eda60c955387c4285e9428
