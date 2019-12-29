@@ -1,7 +1,6 @@
 package com.my.map;
 
 import androidx.appcompat.app.AppCompatActivity;
-
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -45,6 +44,7 @@ public class login extends AppCompatActivity {
             public void onClick(View view) {
                 String username = ((EditText) findViewById(R.id.username)).getText().toString();
                 String password = ((EditText) findViewById(R.id.password)).getText().toString();
+                System.out.println(username+","+password+"-----------------------------");
                 if (UserService.signUp(username, password))
                     runOnUiThread(new Runnable() {
                         @Override
