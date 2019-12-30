@@ -1,10 +1,8 @@
 <resources>
     <string name="app_name">map</string>
-
     <string name="title_activity_navigation01">navigation01</string>
     <string name="title_home">地图</string>
     <string name="title_dashboard">轨迹</string>
     <string name="title_notifications">个人</string>
     <string name="ditu">&#xe637;</string>
-
 </resources>
