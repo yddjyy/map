@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">map</string>
+    <string name="app_name">登录</string>
     <string name="title_activity_navigation01">navigation01</string>
     <string name="title_home">地图</string>
     <string name="title_dashboard">轨迹</string>
