@@ -25,6 +25,20 @@
                 android:textSize="22dp" />
         </LinearLayout>
     </RelativeLayout>
+=======
+   <LinearLayout
+       android:layout_width="match_parent"
+       android:layout_height="40dp"
+       >
+       <TextView
+           android:layout_width="match_parent"
+           android:layout_height="match_parent"
+           android:text="登录"
+           android:textSize="18sp"
+           android:gravity="center"
+           />
+   </LinearLayout>
+>>>>>>> 0bad86ca66024fe37c0d647b47772efac6eaf505
     <RelativeLayout
         android:id="@+id/loginUser"
         android:layout_width="fill_parent"
@@ -157,6 +171,7 @@
                 android:textSize="15dp"
                 android:background="@drawable/buttonstyle1"
                 android:textColor="#ffffff"
+                android:onClick="login"
                 android:text="登陆" />
 
         </LinearLayout>
