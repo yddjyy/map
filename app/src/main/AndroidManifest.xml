@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.my.map">
+    <uses-permission android:name="android.permission.BLUETOOTH"/>
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
     <!-- 这个权限用于进行网络定位 -->
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" /> <!-- 这个权限用于访问GPS定位 -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" /> <!-- 用于访问wifi网络信息，wifi信息会用于进行网络定位 -->
@@ -30,6 +32,15 @@
         <activity
             android:name=".navigation01"
             android:label="@string/title_activity_navigation01"></activity>
+        <activity
+            android:name="com.my.map.ui.home.HomeFragment"
+           ></activity>
+        <activity
+            android:name="com.my.map.ui.dashboard.DashboardFragment"
+            ></activity>
+        <activity
+            android:name="com.my.map.ui.notifications.NotificationsFragment"
+            ></activity>
         <service
             android:name="com.baidu.trace.LBSTraceService"
             android:enabled="true"

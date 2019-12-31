@@ -1,6 +1,7 @@
 package com.my.map.ui.dashboard;
 
 import android.os.Bundle;
+import android.os.Looper;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -46,7 +47,7 @@ public class DashboardFragment extends Fragment {
     private BaiduMap mBaiduMap=null;
     private MapView mMapView=null;
     public LocationClient mLocationClient = null;
-    private LatLng latLng;
+    private LatLng latLng=new LatLng(0.0,0.0);
     private TextView textView=null;
     private View root=null;
     private   float zoom=19;
@@ -55,17 +56,25 @@ public class DashboardFragment extends Fragment {
     private static Trace mTrace = null;//轨迹服务
     public long  serviceId = 218663;//服务id
     public LBSTraceClient mTraceClient = null;//轨迹客户端
+    private LocationClient locationClient=null;//定位服务的客户端
     /**
      * Entity标识  TODO
      */
     public String entityName = "myTrace";
-    private Boolean state=true;
+    private Boolean state=true;//开启采集或结束采集
+    private Boolean flag=true;//是否回调定位
     // 是否需要对象存储服务，默认为：false，关闭对象存储服务。注：鹰眼 Android SDK v3.0以上版本支持随轨迹上传图像等对象数据，若需使用此功能，该参数需设为 true，且需导入bos-android-sdk-1.0.2.jar。
     boolean isNeedObjectStorage = true;
     private static OnTraceListener mTraceListener=null;
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        SDKInitializer.initialize(getActivity().getApplicationContext());
+        super.onCreate(savedInstanceState);
+    }
+
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
-        SDKInitializer.initialize(getActivity().getApplicationContext());
         dashboardViewModel =
                 ViewModelProviders.of(this).get(DashboardViewModel.class);
          root = inflater.inflate(R.layout.fragment_dashboard, container, false);
@@ -85,19 +94,44 @@ public class DashboardFragment extends Fragment {
         startStackBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(state){
-                    state=false;
-                    startStackBtn.setText("停止采集");
-                    mTraceClient.startGather(mTraceListener);
-                }else{
-                    state=true;
-                    startStackBtn.setText("开始采集");
-                    mTraceClient.stopGather(mTraceListener);
-                }
+                new Thread(){
+                    @Override
+                    public void run() {
+                        if(state){
+                            state=false;
+                            getActivity().runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    startStackBtn.setText("停止采集");
+                                }
+                            });
+                            mTraceClient.startGather(mTraceListener);
+                        }else{
+                            state=true;
+                            getActivity().runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    startStackBtn.setText("开始采集");
+                                }
+                            });
+                            mTraceClient.stopGather(mTraceListener);
+                        }
+                        super.run();
+                    }
+                }.start();
             }
         });
-        initLocationOption();
-
+         locationClient = new LocationClient(getActivity().getApplicationContext());
+        initLocationOption(locationClient);
+        new Thread(){
+            @Override
+            public void run() {
+                Looper.prepare();
+                traceService();
+                Looper.loop();
+                super.run();
+            }
+        }.start();
         return root;
     }
     //轨迹记录服务
@@ -115,6 +149,7 @@ public class DashboardFragment extends Fragment {
         mTraceClient.setInterval(gatherInterval, packInterval);
         // 初始化轨迹服务监听器
         mTraceListener = new OnTraceListener() {
+            String msg="";
             @Override
             public void onBindServiceCallback(int i, String s) {
                 Log.e(TAG, "-----i:"+i+"--------message:"+i+"--------------------onBindServiceCallback" );
@@ -123,40 +158,50 @@ public class DashboardFragment extends Fragment {
             // 开启服务回调
             @Override
             public void onStartTraceCallback(int status, String message) {
-                Toast.makeText(getActivity(),"开启服务:"+message,Toast.LENGTH_SHORT ).show();
+                msg=message;
                 Log.e(TAG, "-----status:"+status+"--------message:"+message+"--------------------onStartTraceCallback" );
             }
             // 停止服务回调
             @Override
             public void onStopTraceCallback(int status, String message) {
-                Toast.makeText(getActivity(),"结束服务:"+message,Toast.LENGTH_SHORT    ).show();
+                msg=message;
                 //record.setEndDate(df.format(new Date()));
                 Log.e(TAG, "-----status:"+status+"--------message:"+message+"--------------------onStopTraceCallback" );
             }
             // 开启采集回调
             @Override
             public void onStartGatherCallback(int status, String message) {
-                Toast.makeText(getActivity(),"开启采集:"+message,Toast.LENGTH_SHORT).show();
+                msg=message;
+                getActivity().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(getActivity(),"开启采集:"+msg,Toast.LENGTH_SHORT).show();
+                    }
+                });
                 //record.setStartDate(df.format(new Date()));
                 Log.e(TAG, "-----status:"+status+"--------message:"+message+"--------------------onStartGatherCallback" );
             }
             // 停止采集回调
             @Override
             public void onStopGatherCallback(int status, String message) {
-                Toast.makeText(getActivity(),"结束采集:"+message,Toast.LENGTH_SHORT    ).show();
+                msg=message;
+                getActivity().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(getActivity(),"结束采集:"+msg,Toast.LENGTH_SHORT    ).show();
+                    }
+                });
                 //record.setEndDate(df.format(new Date()));
                 Log.e(TAG, "-----status:"+status+"--------message:"+message+"--------------------onStopGatherCallback" );
             }
             // 推送回调
             @Override
             public void onPushCallback(byte messageNo, PushMessage message) {
-                Toast.makeText(getActivity(),"messageNo:"+messageNo+",message:"+message,Toast.LENGTH_SHORT    ).show();
                 Log.e(TAG, "-----messageNo:"+messageNo+"--------message:"+message+"--------------------onPushCallback" );
             }
 
             @Override
             public void onInitBOSCallback(int i, String s) {
-                //Toast.makeText(MainActivity.this,"i:"+i+",message:"+s,Toast.LENGTH_SHORT    ).show();
                 Log.e(TAG, "-----i:"+i+"--------s:"+s+"--------------------onInitBOSCallback" );
             }
 
@@ -176,9 +221,9 @@ public class DashboardFragment extends Fragment {
      * 初始化定位参数配置
      */
 
-    private void initLocationOption() {
+    private void initLocationOption(LocationClient locationClient) {
 //定位服务的客户端。宿主程序在客户端声明此类，并调用，目前只支持在主线程中启动
-        LocationClient locationClient = new LocationClient(getActivity().getApplicationContext());
+        //LocationClient locationClient = new LocationClient(getActivity().getApplicationContext());
 //声明LocationClient类实例并配置定位参数
         LocationClientOption locationOption = new LocationClientOption();
         MyLocationListener myLocationListener = new MyLocationListener();
@@ -216,7 +261,7 @@ public class DashboardFragment extends Fragment {
 //可选，默认gcj02，设置返回的定位结果坐标系，如果配合百度地图使用，建议设置为bd09ll;
         locationOption.setCoorType("bd09ll");
 //可选，默认0，即仅定位一次，设置发起连续定位请求的间隔需要大于等于1000ms才是有效的
-        locationOption.setScanSpan(1000);
+        locationOption.setScanSpan(0);
 //可选，设置是否需要地址信息，默认不需要
         locationOption.setIsNeedAddress(true);
 //可选，设置是否需要地址描述
@@ -224,7 +269,7 @@ public class DashboardFragment extends Fragment {
 //可选，设置是否需要设备方向结果
         locationOption.setNeedDeviceDirect(false);
 //可选，默认false，设置是否当gps有效时按照1S1次频率输出GPS结果
-        locationOption.setLocationNotify(true);
+        //locationOption.setLocationNotify(false);
 //可选，默认true，定位SDK内部是一个SERVICE，并放到了独立进程，设置是否在stop的时候杀死这个进程，默认不杀死
         locationOption.setIgnoreKillProcess(true);
 //可选，默认false，设置是否需要位置语义化结果，可以在BDLocation.getLocationDescribe里得到，结果类似于“在北京天安门附近”
@@ -240,9 +285,9 @@ public class DashboardFragment extends Fragment {
 //可选，默认false，设置定位时是否需要海拔信息，默认不需要，除基础定位版本都可用
         locationOption.setIsNeedAltitude(false);
 //设置打开自动回调位置模式，该开关打开后，期间只要定位SDK检测到位置变化就会主动回调给开发者，该模式下开发者无需再关心定位间隔是多少，定位SDK本身发现位置变化就会及时回调给开发者
-        locationOption.setOpenAutoNotifyMode();
+        //locationOption.setOpenAutoNotifyMode();
 //设置打开自动回调位置模式，该开关打开后，期间只要定位SDK检测到位置变化就会主动回调给开发者
-        locationOption.setOpenAutoNotifyMode(2000,1, LocationClientOption.LOC_SENSITIVITY_HIGHT);
+        locationOption.setOpenAutoNotifyMode(2000,1, LocationClientOption.LOC_SENSITIVITY_MIDDLE);
 //需将配置好的LocationClientOption对象，通过setLocOption方法传递给LocationClient对象使用
         locationClient.setLocOption(locationOption);
 //开始定位
@@ -255,10 +300,15 @@ public class DashboardFragment extends Fragment {
         String result=null;
         @Override
         public void onReceiveLocation(final BDLocation location){
+            //解决每秒都回调的问题
+            if(Math.abs(latLng.longitude-location.getLongitude())>0.001||Math.abs(latLng.latitude-location.getLatitude())>0.001)
+            {
+                flag=true;
+            }else
+                flag=false;
+            if(!flag) return;
             latLng = new LatLng(location.getLatitude(), location.getLongitude());
             //此处的BDLocation为定位结果信息类，通过它的各种get方法可获取定位相关的全部结果
-            //以下只列举部分获取经纬度相关（常用）的结果信息
-            //更多结果信息获取说明，请参照类参考中BDLocation类中的说明
             //获取纬度信息
             double latitude = location.getLatitude();
             //获取经度信息
@@ -274,8 +324,12 @@ public class DashboardFragment extends Fragment {
             if (location == null || mMapView == null){
                 return;
             }
-            setPosition2Center(mBaiduMap, location, true);
-            String addr = location.getAddrStr();    //获取详细地址信息
+            getActivity().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    setPosition2Center(mBaiduMap, location, true);
+                }
+            });
             Log.e(TAG, "onReceiveLocation: "+result );
             //textView.setText(result+","+addr+";"+location.getSpeed());
         }
@@ -308,11 +362,20 @@ public class DashboardFragment extends Fragment {
     }
     @Override
     public void onDestroy() {
-        mLocationClient.stop();
+        //mLocationClient.stop();
+       /* mBaiduMap.setMyLocationEnabled(false);
+        mTraceClient.stopTrace(mTrace, mTraceListener);
+        mMapView.onDestroy();
+        mMapView = null;*/
+        super.onDestroy();
+    }
+
+    @Override
+    public void onDetach() {
         mBaiduMap.setMyLocationEnabled(false);
         mTraceClient.stopTrace(mTrace, mTraceListener);
         mMapView.onDestroy();
         mMapView = null;
-        super.onDestroy();
+        super.onDetach();
     }
 }
