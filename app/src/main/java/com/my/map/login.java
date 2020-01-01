@@ -31,6 +31,7 @@ public class login extends AppCompatActivity {
                         if (true)
                         {
                             Information.setUsername("闫帅军");
+                            Information.setId("1");
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {

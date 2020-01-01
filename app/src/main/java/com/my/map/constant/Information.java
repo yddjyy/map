@@ -1,17 +1,17 @@
 package com.my.map.constant;
 
 public  class Information {
-    public static  int id;//用户id
+    public static  String id;//用户id
     public  static String username;//用户名
     public static String passworrd;//密码；
     public static String startTime;
     public static String endTime;
 
-    public static int getId() {
+    public static String getId() {
         return id;
     }
 
-    public static void setId(int id) {
+    public static void setId(String id) {
         Information.id = id;
     }
 
