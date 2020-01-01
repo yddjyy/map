@@ -12,6 +12,7 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
 
+import com.my.map.constant.Information;
 import com.my.map.R;
 
 public class NotificationsFragment extends Fragment {
@@ -27,7 +28,7 @@ public class NotificationsFragment extends Fragment {
         notificationsViewModel.getText().observe(this, new Observer<String>() {
             @Override
             public void onChanged(@Nullable String s) {
-                textView.setText(s);
+                textView.setText(Information.getUsername());
             }
         });
         return root;

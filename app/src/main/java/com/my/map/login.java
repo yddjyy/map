@@ -5,10 +5,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
-import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
+
+import com.my.map.constant.Information;
 
 public class login extends AppCompatActivity {
 
@@ -29,6 +30,7 @@ public class login extends AppCompatActivity {
                         //UserService.signIn(username, password)
                         if (true)
                         {
+                            Information.setUsername("闫帅军");
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
