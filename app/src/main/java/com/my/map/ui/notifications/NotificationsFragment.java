@@ -1,5 +1,7 @@
 package com.my.map.ui.notifications;
 
+import android.content.ComponentName;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,6 +15,9 @@ import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
 
 import com.my.map.R;
+import com.my.map.history;
+import com.my.map.person;
+import com.my.map.personmessage;
 
 public class NotificationsFragment extends Fragment {
 
@@ -20,14 +25,14 @@ public class NotificationsFragment extends Fragment {
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
+        TextView textView01 =(TextView) getActivity().findViewById(R.id.per_message);
+        TextView textView02= (TextView) getActivity().findViewById(R.id.per_history);
         notificationsViewModel =
                 ViewModelProviders.of(this).get(NotificationsViewModel.class);
         View root = inflater.inflate(R.layout.fragment_notifications, container, false);
-        final TextView textView = root.findViewById(R.id.text_notifications);
         notificationsViewModel.getText().observe(this, new Observer<String>() {
             @Override
             public void onChanged(@Nullable String s) {
-                textView.setText(s);
             }
         });
         return root;
