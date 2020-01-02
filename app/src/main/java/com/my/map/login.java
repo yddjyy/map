@@ -104,28 +104,12 @@ public class login extends AppCompatActivity {
 
             }
         });
-        Button signup = (Button) findViewById(R.id.register);
+        final Button signup = (Button) findViewById(R.id.register);
         signup.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                String username = ((EditText) findViewById(R.id.username)).getText().toString();
-                String password = ((EditText) findViewById(R.id.password)).getText().toString();
-                System.out.println(username + "," + password + "-----------------------------");
-                if (UserService.signUp(username, password))
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            Toast.makeText(login.this, "注册成功", Toast.LENGTH_SHORT).show();
-                        }
-                    });
-                else {
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            Toast.makeText(login.this, "注册失败", Toast.LENGTH_SHORT).show();
-                        }
-                    });
-                }
+                Intent intent=new Intent(login.this,personregist.class);
+                startActivity(intent);
             }
         });
     }

@@ -23,10 +23,11 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".personupdata"></activity>
+        <activity android:name=".personregist"></activity>
+        <activity android:name=".personupdata" />
         <activity android:name=".personmessage" />
         <activity android:name=".history" />
-        <activity android:name=".person"></activity>
+        <activity android:name=".person" />
         <activity android:name=".login">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
