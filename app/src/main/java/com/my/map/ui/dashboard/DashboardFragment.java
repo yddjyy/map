@@ -1,7 +1,10 @@
 package com.my.map.ui.dashboard;
 
+import android.icu.text.IDNA;
+import android.media.audiofx.AcousticEchoCanceler;
 import android.os.Bundle;
 import android.os.Looper;
+import android.provider.ContactsContract;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -33,11 +36,30 @@ import com.baidu.mapapi.map.MyLocationData;
 import com.baidu.mapapi.model.LatLng;
 import com.baidu.trace.LBSTraceClient;
 import com.baidu.trace.Trace;
+import com.baidu.trace.api.track.DistanceRequest;
+import com.baidu.trace.api.track.DistanceResponse;
+import com.baidu.trace.api.track.HistoryTrackRequest;
+import com.baidu.trace.api.track.HistoryTrackResponse;
+import com.baidu.trace.api.track.OnTrackListener;
+import com.baidu.trace.api.track.SupplementMode;
+import com.baidu.trace.api.track.TrackPoint;
 import com.baidu.trace.model.OnTraceListener;
+import com.baidu.trace.model.ProcessOption;
 import com.baidu.trace.model.PushMessage;
+import com.baidu.trace.model.SortType;
+import com.baidu.trace.model.StatusCodes;
+import com.baidu.trace.model.TransportMode;
 import com.my.map.R;
+import com.my.map.constant.Information;
+import com.my.map.utils.HttpUtils;
+import com.my.map.utils.TraceUtil;
 
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static android.content.ContentValues.TAG;
 
@@ -57,16 +79,18 @@ public class DashboardFragment extends Fragment {
     public long  serviceId = 218663;//服务id
     public LBSTraceClient mTraceClient = null;//轨迹客户端
     private LocationClient locationClient=null;//定位服务的客户端
+    private List<LatLng> trackPoints;//存储查询到的做吧 TODO 未实例化
     /**
      * Entity标识  TODO
      */
-    public String entityName = "myTrace";
+    public String entityName = Information.getId();//设置当前用户标识
     private Boolean state=true;//开启采集或结束采集
     private Boolean flag=true;//是否回调定位
+    private Boolean reqHistoryFlag=false;//标记是否进行实时查询历史记录进行绘制
     // 是否需要对象存储服务，默认为：false，关闭对象存储服务。注：鹰眼 Android SDK v3.0以上版本支持随轨迹上传图像等对象数据，若需使用此功能，该参数需设为 true，且需导入bos-android-sdk-1.0.2.jar。
     boolean isNeedObjectStorage = true;
     private static OnTraceListener mTraceListener=null;
-
+    private SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         SDKInitializer.initialize(getActivity().getApplicationContext());
@@ -99,21 +123,9 @@ public class DashboardFragment extends Fragment {
                     public void run() {
                         if(state){
                             state=false;
-                            getActivity().runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    startStackBtn.setText("停止采集");
-                                }
-                            });
                             mTraceClient.startGather(mTraceListener);
                         }else{
                             state=true;
-                            getActivity().runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    startStackBtn.setText("开始采集");
-                                }
-                            });
                             mTraceClient.stopGather(mTraceListener);
                         }
                         super.run();
@@ -134,6 +146,131 @@ public class DashboardFragment extends Fragment {
         }.start();
         return root;
     }
+    //查询历史记录绘画路径
+    public void requestLocation(String startDate,String endDate)
+    {
+        // 请求标识
+        int tag = 1;
+        HistoryTrackRequest historyTrackRequest = new HistoryTrackRequest(tag, serviceId, entityName);
+        try {
+            // 设置开始时间
+            historyTrackRequest.setStartTime(df.parse(startDate).getTime()/1000);
+        // 设置结束时间
+            historyTrackRequest.setEndTime(df.parse(endDate).getTime()/1000);
+        }catch (Exception e ){
+
+        }
+
+// 设置需要纠偏
+        historyTrackRequest.setProcessed(true);
+// 创建纠偏选项实例
+        ProcessOption processOption = new ProcessOption();
+// 设置需要去噪
+        processOption.setNeedDenoise(true);
+// 设置需要抽稀
+        processOption.setNeedVacuate(true);
+// 设置需要绑路
+        processOption.setNeedMapMatch(true);
+// 设置精度过滤值(定位精度大于100米的过滤掉)
+        processOption.setRadiusThreshold(100);
+// 设置交通方式为步行
+        processOption.setTransportMode(TransportMode.walking);
+// 设置纠偏选项
+        historyTrackRequest.setProcessOption(processOption);
+// 设置里程填充方式为步行
+        historyTrackRequest.setSupplementMode(SupplementMode.walking);
+// 初始化轨迹监听器
+        OnTrackListener mTrackListener = new OnTrackListener() {
+            @Override
+            public void onHistoryTrackCallback(HistoryTrackResponse response) {
+                // 历史轨迹回调
+                trackPoints=new ArrayList<>();
+                Log.e(TAG, "---历史轨迹回调--response:"+response.getTotal() );
+                int total = response.getTotal();
+                if (StatusCodes.SUCCESS != response.getStatus()) {
+                    Toast.makeText(getActivity(), "结果为：" + response.getMessage(), Toast.LENGTH_SHORT).show();
+                } else if (0 == total) {
+                    Toast.makeText(getActivity(), "未查询到历史轨迹", Toast.LENGTH_SHORT).show();
+                } else {
+                    System.out.println("原始数据start");
+                    for(TrackPoint point :response.getTrackPoints()){
+                        System.out.println(point.getLocation().getLatitude()+","+point.getLocation().getLongitude());
+                    }
+                    System.out.println("原始数据end");
+                    List<TrackPoint> points = response.getTrackPoints();
+                    if (null != points) {
+                        for (TrackPoint trackPoint : points) {
+                            if (!TraceUtil.isZeroPoint(trackPoint.getLocation().getLatitude(),
+                                    trackPoint.getLocation().getLongitude())) {
+                                trackPoints.add(TraceUtil.convertTrace2Map(trackPoint.getLocation()));
+                            }
+                        }
+                    }
+                }
+                TraceUtil traceUtil=new TraceUtil();
+                traceUtil.drawHistoryTrack(mBaiduMap,trackPoints, SortType.asc);
+            }
+
+        };
+// 查询轨迹
+        mTraceClient.queryHistoryTrack(historyTrackRequest, mTrackListener);
+    }
+  //查询里程
+    public void requestMile(String startDate,String endDate)
+    {
+        // 请求标识
+        int tag = 2;
+// 创建里程查询请求实例
+        DistanceRequest distanceRequest = new DistanceRequest(tag, serviceId, entityName);
+        try {
+// 设置开始时间
+            distanceRequest.setStartTime(df.parse(startDate).getTime()/1000);
+// 设置结束时间
+            distanceRequest.setEndTime(df.parse(endDate).getTime()/1000);
+        }catch (Exception e){
+
+            Log.e(TAG, "查询里程出错");
+        }
+
+// 设置需要纠偏
+        distanceRequest.setProcessed(true);
+// 创建纠偏选项实例
+        ProcessOption processOption = new ProcessOption();
+// 设置需要去噪
+        processOption.setNeedDenoise(true);
+// 设置需要绑路
+        processOption.setNeedMapMatch(true);
+// 设置交通方式为驾车
+        processOption.setTransportMode(TransportMode.driving);
+// 设置纠偏选项
+        distanceRequest.setProcessOption(processOption);
+
+// 设置里程填充方式为驾车
+        distanceRequest.setSupplementMode(SupplementMode.walking);
+
+// 初始化轨迹监听器
+        OnTrackListener mTrackListener = new OnTrackListener() {
+            // 里程回调
+            @Override
+            public void onDistanceCallback(final DistanceResponse response) {
+                getActivity().runOnUiThread(new Runnable() {//TODO 后期删除
+                    @Override
+                    public void run() {
+                        double distance=response.getDistance();
+                        if(distance==0.000000)
+                            distance=0.0;
+                        Information.setMile(distance+"");
+                        Toast.makeText(getActivity(),"本次运动距离:"+distance+"公里，继续努力！",Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+        };
+// 查询里程
+        mTraceClient.queryDistance(distanceRequest, mTrackListener);
+
+    }
+
+
     //轨迹记录服务
     public void traceService()
     {
@@ -165,33 +302,67 @@ public class DashboardFragment extends Fragment {
             @Override
             public void onStopTraceCallback(int status, String message) {
                 msg=message;
-                //record.setEndDate(df.format(new Date()));
                 Log.e(TAG, "-----status:"+status+"--------message:"+message+"--------------------onStopTraceCallback" );
             }
             // 开启采集回调
             @Override
             public void onStartGatherCallback(int status, String message) {
                 msg=message;
+                if(status==0){//开启采集操作成功则记录时间
+                    Information.setStartTime(df.format(new Date()));
+                    getActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            startStackBtn.setText("停止采集");
+                        }
+                    });
+                }
                 getActivity().runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
                         Toast.makeText(getActivity(),"开启采集:"+msg,Toast.LENGTH_SHORT).show();
                     }
                 });
-                //record.setStartDate(df.format(new Date()));
+                reqHistoryFlag=true;//标志可以进行实时查询轨迹并绘制
                 Log.e(TAG, "-----status:"+status+"--------message:"+message+"--------------------onStartGatherCallback" );
             }
             // 停止采集回调
             @Override
             public void onStopGatherCallback(int status, String message) {
                 msg=message;
+                if(status==0)//关闭采集成功
+                {
+                    Information.setEndTime(df.format(new Date()));
+                    getActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            startStackBtn.setText("开始采集");
+                        }
+                    });
+                    reqHistoryFlag=false;//不在查询位置轨迹
+                    requestMile(Information.getStartTime(),Information.getEndTime());
+                    if(Information.getMile()==null){
+                        Information.setMile("0.0");
+                    }
+                    Log.e(TAG, "本次行走了："+Information.getMile()+"开始时间："+ Information.getStartTime()+"结束时间："+Information.getEndTime()+"用户id:"+Information.getId());
+                    new Thread(){//本次行走距离上传
+                        @Override
+                        public void run() {
+                            Map<String,String> map =new HashMap<String ,String>();
+                            map.put("userid",Information.getId());
+                            map.put("starttime",Information.getStartTime());
+                            map.put("endtime",Information.getEndTime());
+                            map.put("mileage",Information.getMile());
+                            HttpUtils.httpService(map,"LocationRegist");
+                        }
+                    }.start();
+                }
                 getActivity().runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        Toast.makeText(getActivity(),"结束采集:"+msg,Toast.LENGTH_SHORT    ).show();
+                        Toast.makeText(getActivity(),"结束采集:"+msg,Toast.LENGTH_SHORT ).show();
                     }
                 });
-                //record.setEndDate(df.format(new Date()));
                 Log.e(TAG, "-----status:"+status+"--------message:"+message+"--------------------onStopGatherCallback" );
             }
             // 推送回调
@@ -206,15 +377,17 @@ public class DashboardFragment extends Fragment {
             }
 
         };
-        mTraceClient.startTrace(mTrace, mTraceListener);
+        mTraceClient.startTrace(mTrace, mTraceListener);//开始服务
     }
+
+
+
     //实现手动定位
     public void ReLocation()
     {
         Log.e(TAG, "手动定位: " );
         MapStatusUpdate mapStatusUpdate = MapStatusUpdateFactory.newLatLng(latLng);
         mBaiduMap.animateMapStatus(mapStatusUpdate);//以动画的方式跟新地图
-        //btn1.setText("纬度："+latLng.latitude+"经度："+latLng.longitude);
     }
 
     /**
@@ -227,7 +400,6 @@ public class DashboardFragment extends Fragment {
 //声明LocationClient类实例并配置定位参数
         LocationClientOption locationOption = new LocationClientOption();
         MyLocationListener myLocationListener = new MyLocationListener();
-//
         BaiduMap.OnMapStatusChangeListener onMapStatusChangeListener = new BaiduMap.OnMapStatusChangeListener() {
 
             @Override
@@ -243,7 +415,7 @@ public class DashboardFragment extends Fragment {
             @Override
             public void onMapStatusChange(MapStatus mapStatus) {
                  zoom = mapStatus.zoom;
-               if(mBaiduMap.getMapStatus().zoom-zoom>0.1)
+               if(Math.abs(mBaiduMap.getMapStatus().zoom-zoom)>0.1)//设置当缩放比改变是就重新定义地图缩放比
                 mBaiduMap.setMapStatus(MapStatusUpdateFactory.newMapStatus(new MapStatus.Builder().zoom(zoom).build()));
             }
 
@@ -307,6 +479,8 @@ public class DashboardFragment extends Fragment {
             }else
                 flag=false;
             if(!flag) return;
+            if(reqHistoryFlag)//如果点击了开始记录按钮则开始查询路径，并绘制
+                requestLocation(Information.getStartTime(),df.format(new Date()));//传入记录的开始时间和 当前时间 格式 2019-1-1
             latLng = new LatLng(location.getLatitude(), location.getLongitude());
             //此处的BDLocation为定位结果信息类，通过它的各种get方法可获取定位相关的全部结果
             //获取纬度信息
@@ -372,6 +546,7 @@ public class DashboardFragment extends Fragment {
 
     @Override
     public void onDetach() {
+       // mLocationClient.stop();
         mBaiduMap.setMyLocationEnabled(false);
         mTraceClient.stopTrace(mTrace, mTraceListener);
         mMapView.onDestroy();

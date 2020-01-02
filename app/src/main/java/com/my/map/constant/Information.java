@@ -6,6 +6,16 @@ public  class Information {
     public static String passworrd;//密码；
     public static String startTime;
     public static String endTime;
+    public  static String mile;
+
+    public static String getMile() {
+        return mile;
+    }
+
+    public static void setMile(String mile) {
+        Information.mile = mile;
+    }
+
     public static String age;
     public static String sex;
 

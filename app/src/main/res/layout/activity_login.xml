@@ -16,16 +16,13 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerInParent="true">
-
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-
                 android:textColor="#ffffff"
                 android:textSize="22dp" />
         </LinearLayout>
     </RelativeLayout>
-=======
    <LinearLayout
        android:layout_width="match_parent"
        android:layout_height="40dp"
@@ -33,12 +30,11 @@
        <TextView
            android:layout_width="match_parent"
            android:layout_height="match_parent"
-           android:text="登录"
+           android:text=""
            android:textSize="18sp"
            android:gravity="center"
            />
    </LinearLayout>
->>>>>>> 0bad86ca66024fe37c0d647b47772efac6eaf505
     <RelativeLayout
         android:id="@+id/loginUser"
         android:layout_width="fill_parent"
@@ -52,7 +48,7 @@
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:layout_centerInParent="true"
-            android:src="@drawable/users" />
+            android:src="@mipmap/touxiang" />
 
     </RelativeLayout>
 
