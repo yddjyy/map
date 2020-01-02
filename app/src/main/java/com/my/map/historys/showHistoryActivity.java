@@ -43,8 +43,7 @@ public class showHistoryActivity extends AppCompatActivity {
     /**218663
      * 轨迹服务ID 218668
      */
-    public long serviceId = 218663;
-
+    public long serviceId = 218743;
     /**
      * 轨迹客户端
      */

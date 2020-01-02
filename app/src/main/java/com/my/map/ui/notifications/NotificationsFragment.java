@@ -70,7 +70,7 @@ public class NotificationsFragment extends Fragment {
             public void onClick(View v) {
                 String url = "http://192.168.1.109:8080/Android/LocationSelectId";
                 RequestBody requestBody = new FormBody.Builder()
-                        .add("userid", "1")
+                        .add("userid", Information.getId())
                         .build();
                 OkHttpClient okHttpClient = new OkHttpClient();
                 final Request request = new Request.Builder()

@@ -38,7 +38,7 @@ public class history extends AppCompatActivity {
            JSONObject jsonObject = jsonArray.getJSONObject(i);
             Map<String,Object> listItem=new HashMap<String, Object>();
             listItem.put("start_time",jsonObject.optString("starttime",null));
-            listItem.put("kilometer",jsonObject.optString("mileage")+"公里");
+            listItem.put("kilometer",jsonObject.optString("mileage")+"米");
             listItem.put("end_time",jsonObject.optString("endtime"));
             maplist.add(listItem);
         }

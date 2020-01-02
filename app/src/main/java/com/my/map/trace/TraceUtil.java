@@ -69,14 +69,14 @@ public class TraceUtil {
                 .position(startPoint).icon(BitmapDescriptorFactory.fromResource(R.mipmap.icon_start))
                 .zIndex(9).draggable(true);
         // 添加终点图标
-        OverlayOptions endOptions = new MarkerOptions().position(endPoint)
-                .icon(BitmapDescriptorFactory.fromResource(R.mipmap.icon_end)).zIndex(9).draggable(true);
+//        OverlayOptions endOptions = new MarkerOptions().position(endPoint)
+//                .icon(BitmapDescriptorFactory.fromResource(R.mipmap.icon_end)).zIndex(9).draggable(true);
 
         // 添加路线（轨迹）
         OverlayOptions polylineOptions = new PolylineOptions().width(15)
                 .color(Color.BLUE).points(points).dottedLine(true).customTexture(BitmapDescriptorFactory.fromResource(R.mipmap.wenli));
         mBaiduMap.addOverlay(startOptions);
-        mBaiduMap.addOverlay(endOptions);
+        //mBaiduMap.addOverlay(endOptions);
         polylineOverlay = mBaiduMap.addOverlay(polylineOptions);
 
         OverlayOptions markerOptions =

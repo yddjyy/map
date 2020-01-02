@@ -48,8 +48,9 @@ public class login extends AppCompatActivity {
                                     Toast.makeText(login.this, "请输入正确的用户名和密码", Toast.LENGTH_SHORT).show();
                                 }
                             });
+                        //TODO UserService.signIn(username, password)
                         if (UserService.signIn(username, password)) {
-                            String url = "http://192.168.1.109:8080/Android/UserSelect?username=" + username + "&password=" + password;//TODO
+                           String url = "http://192.168.1.109:8080/Android/UserSelect?username=" + username + "&password=" + password;//TODO
                             OkHttpClient okHttpClient = new OkHttpClient();
                             final Request request = new Request.Builder()
                                     .url(url)

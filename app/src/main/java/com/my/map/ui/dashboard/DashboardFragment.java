@@ -76,12 +76,12 @@ public class DashboardFragment extends Fragment {
     private ImageButton reloaction;
     private Button startStackBtn;//开始和结束轨迹记录
     private static Trace mTrace = null;//轨迹服务
-    public long  serviceId = 218663;//服务id
+    public long  serviceId = 218743;//服务id
     public LBSTraceClient mTraceClient = null;//轨迹客户端
     private LocationClient locationClient=null;//定位服务的客户端
-    private List<LatLng> trackPoints;//存储查询到的做吧 TODO 未实例化
+    private List<LatLng> trackPoints;//存储查询到的坐标
     /**
-     * Entity标识  TODO
+     * Entity标识
      */
     public String entityName = Information.getId();//设置当前用户标识
     private Boolean state=true;//开启采集或结束采集
@@ -256,11 +256,13 @@ public class DashboardFragment extends Fragment {
                 getActivity().runOnUiThread(new Runnable() {//TODO 后期删除
                     @Override
                     public void run() {
-                        double distance=response.getDistance();
-                        if(distance==0.000000)
-                            distance=0.0;
+                        int distance=(int)response.getDistance();
+                        if(distance==0)
+                        {
+                            distance=0;
+                        }
                         Information.setMile(distance+"");
-                        Toast.makeText(getActivity(),"本次运动距离:"+distance+"公里，继续努力！",Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getActivity(),"本次运动距离:"+distance+"米，继续努力！",Toast.LENGTH_SHORT).show();
                     }
                 });
             }
@@ -313,14 +315,14 @@ public class DashboardFragment extends Fragment {
                     getActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            startStackBtn.setText("停止采集");
+                            startStackBtn.setText("停止跑步");
                         }
                     });
                 }
                 getActivity().runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        Toast.makeText(getActivity(),"开启采集:"+msg,Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getActivity(),"开启跑步:"+msg,Toast.LENGTH_SHORT).show();
                     }
                 });
                 reqHistoryFlag=true;//标志可以进行实时查询轨迹并绘制
@@ -336,9 +338,10 @@ public class DashboardFragment extends Fragment {
                     getActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            startStackBtn.setText("开始采集");
+                            startStackBtn.setText("开始跑步");
                         }
                     });
+                    mBaiduMap.clear();//清除地图上的轨迹
                     reqHistoryFlag=false;//不在查询位置轨迹
                     requestMile(Information.getStartTime(),Information.getEndTime());
                     if(Information.getMile()==null){
@@ -360,7 +363,7 @@ public class DashboardFragment extends Fragment {
                 getActivity().runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        Toast.makeText(getActivity(),"结束采集:"+msg,Toast.LENGTH_SHORT ).show();
+                        Toast.makeText(getActivity(),"结束跑步:"+msg,Toast.LENGTH_SHORT ).show();
                     }
                 });
                 Log.e(TAG, "-----status:"+status+"--------message:"+message+"--------------------onStopGatherCallback" );
@@ -473,7 +476,7 @@ public class DashboardFragment extends Fragment {
         @Override
         public void onReceiveLocation(final BDLocation location){
             //解决每秒都回调的问题
-            if(Math.abs(latLng.longitude-location.getLongitude())>0.001||Math.abs(latLng.latitude-location.getLatitude())>0.001)
+            if(Math.abs(latLng.longitude-location.getLongitude())>0.000000001||Math.abs(latLng.latitude-location.getLatitude())>0.000000001)
             {
                 flag=true;
             }else
