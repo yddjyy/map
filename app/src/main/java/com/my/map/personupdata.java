@@ -83,6 +83,7 @@ public class personupdata extends AppCompatActivity {
             public void onClick(View v) {
                 Intent intent=new Intent(personupdata.this,login.class);
                 startActivity(intent);
+                finish();//销毁
             }
         });
     }

@@ -22,7 +22,6 @@ public class HttpUtils {
     public static  String httpService(Map<String,String> map,String uri)
     {
         String url = "http://"+ip+":8080/Android/"+uri;
-
         FormBody.Builder builder = new FormBody.Builder();
         for(Map.Entry<String, String> vo : map.entrySet()){
             vo.getKey();

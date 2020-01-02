@@ -13,7 +13,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:textSize="18sp"
+            android:textSize="25sp"
             android:gravity="center"
             android:textStyle="bold"
             android:text="时间"/>
@@ -21,7 +21,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:textSize="18sp"
+            android:textSize="25sp"
             android:gravity="center"
             android:textStyle="bold"
             android:text="里程数"/>
@@ -31,6 +31,5 @@
         android:id="@+id/mylist"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
-
     </ListView>
 </LinearLayout>
