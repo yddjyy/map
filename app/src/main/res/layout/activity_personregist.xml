@@ -76,6 +76,15 @@
         android:layout_centerHorizontal="true"
         android:hint="请确认您的密码" />
 
+    <TextView
+        android:layout_width="fill_parent"
+        android:layout_height="60dp"
+        android:gravity="center_vertical"
+        android:ems="10"
+        android:id="@+id/resetpwd_edit_show"
+        android:layout_below="@+id/resetpwd_edit_pwd_new"
+        android:layout_centerHorizontal="true"
+        android:hint="" />
     <Button
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
@@ -83,15 +92,15 @@
         android:id="@+id/register_btn_sure"
         android:textSize="20dp"
         android:background="#1cf718"
-        android:layout_below="@+id/resetpwd_edit_pwd_new"
-        android:layout_alignLeft="@+id/resetpwd_edit_pwd_new"
-        android:layout_alignStart="@+id/resetpwd_edit_pwd_new"
+        android:layout_below="@+id/resetpwd_edit_show"
+        android:layout_alignLeft="@+id/resetpwd_edit_show"
+        android:layout_alignStart="@+id/resetpwd_edit_show"
         android:layout_marginTop="20dp" />
 
     <Button
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:text="取消"
+        android:text="返回"
         android:id="@+id/register_btn_cancel"
         android:textSize="20dp"
         android:background="#f71818"
