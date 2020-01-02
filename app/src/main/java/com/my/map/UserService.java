@@ -9,7 +9,7 @@ import java.net.URLEncoder;
 
 public class UserService {
     public static boolean signIn(String username, String password) {
-        MyThread myThread = new MyThread("http://192.168.1.109:8080/Android/UserLogin",username,password);
+        MyThread myThread = new MyThread("http://192.168.1.109:8080/Android/UserLogin",username,password);//TODO
         try
         {
             myThread.start();
